@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestionale 2026</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ==================== AUTH ==================== -->
+<div id="auth-screen" style="display:none">
+  <div class="auth-box">
+    <div class="auth-logo">Gestionale 2026</div>
+    <div class="auth-sub">Accedi per continuare</div>
+    <input type="email" id="login-email" placeholder="Email">
+    <input type="password" id="login-pass" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn-auth" onclick="login()">Accedi</button>
+    <div class="auth-msg" id="auth-msg"></div>
+    <div class="auth-switch">Non hai un account? <a onclick="signup()">Registrati</a></div>
+  </div>
+</div>
+
+<!-- ==================== APP ==================== -->
+<div id="app-screen" style="display:none">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      Gestionale <span>2026</span>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="dashboard" onclick="showTab('dashboard')">
+        ▦ Dashboard
+      </button>
+      <button class="nav-tab" data-tab="entrate" onclick="showTab('entrate')">
+        ↓ Entrate
+      </button>
+      <button class="nav-tab" data-tab="uscite" onclick="showTab('uscite')">
+        ↑ Uscite
+      </button>
+      <button class="nav-tab" data-tab="stipendi" onclick="showTab('stipendi')">
+        ⊞ Stipendi
+      </button>
+    </nav>
+    <div class="topbar-right">
+      <span id="user-email"></span>
+      <button class="btn-logout" onclick="logout()">Esci</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="section active" id="sec-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-label">Entrate incassate</div>
+          <div class="kpi-value pos" id="kpi-entrate">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Uscite totali</div>
+          <div class="kpi-value neg" id="kpi-uscite">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Costo stipendi</div>
+          <div class="kpi-value neg" id="kpi-stipendi">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Saldo annuale</div>
+          <div class="kpi-value" id="kpi-saldo">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          Saldo mensile 2026
+          <button class="btn btn-sm" onclick="esportaCSV()">↓ Esporta CSV</button>
+        </div>
+        <div class="card-body">
+          <div class="months-row" id="dash-months"></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div class="card">
+          <div class="card-header">Entrate per stato</div>
+          <div class="card-body" id="dash-stati"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">Uscite per categoria</div>
+          <div class="card-body" id="dash-cat"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ENTRATE ===== -->
+    <div class="section" id="sec-entrate">
+      <div class="toolbar">
+        <select id="fil-mese-e" onchange="renderEntrate()"></select>
+        <select id="fil-stato-e" onchange="renderEntrate()">
+          <option value="">Tutti gli stati</option>
+          <option>PAGATO</option>
+          <option>NON PAGATO</option>
+          <option>FATTURA IN CORSO</option>
+          <option>BANDO</option>
+        </select>
+        <input type="search" id="fil-cerca-e" placeholder="Cerca cliente..." style="width:200px" oninput="renderEntrate()">
+        <button class="btn btn-primary ml-auto" onclick="openModal('modal-entrata')">+ Aggiungi entrata</button>
+      </div>
+
+      <div class="card" style="padding:0">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Mese</th>
+              <th class="td-right">Importo</th>
+              <th>Stato</th>
+              <th>Note</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tb-entrate"></tbody>
+        </table>
+      </div>
+      <div class="total-bar" id="tot-entrate"></div>
+    </div>
+
+    <!-- ===== USCITE ===== -->
+    <div class="section" id="sec-uscite">
+      <div class="toolbar">
+        <select id="fil-mese-u" onchange="renderUscite()"></select>
+        <select id="fil-cat-u" onchange="renderUscite()">
+          <option value="">Tutte le categorie</option>
+          <option>Stipendi</option>
+          <option>Affitto</option>
+          <option>Tasse</option>
+          <option>Ufficio</option>
+          <option>Extra</option>
+        </select>
+        <input type="search" id="fil-cerca-u" placeholder="Cerca..." style="width:180px" oninput="renderUscite()">
+        <button class="btn btn-primary ml-auto" onclick="openModal('modal-uscita')">+ Aggiungi uscita</button>
+      </div>
+
+      <div class="card" style="padding:0">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Categoria</th>
+              <th>Descrizione</th>
+              <th class="td-right">Importo</th>
+              <th>Fornitore</th>
+              <th>Metodo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tb-uscite"></tbody>
+        </table>
+      </div>
+      <div class="total-bar" id="tot-uscite"></div>
+    </div>
+
+    <!-- ===== STIPENDI ===== -->
+    <div class="section" id="sec-stipendi">
+      <div class="toolbar">
+        <select id="fil-tipo-s" onchange="renderStipendi()">
+          <option value="stipendio">Stipendi</option>
+          <option value="bonus">Bonus</option>
+        </select>
+        <button class="btn btn-primary ml-auto" onclick="openModal('modal-dipendente')">+ Aggiungi dipendente</button>
+      </div>
+
+      <div class="card" style="padding:0">
+        <div class="stipendi-wrap">
+          <table id="tb-stipendi"></table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app-screen -->
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Modal Entrata -->
+<div class="modal-overlay" id="modal-entrata">
+  <div class="modal">
+    <div class="modal-title">Nuova entrata</div>
+    <div class="form-row">
+      <div class="form-group"><label>Cliente</label><input id="e-cliente" placeholder="Nome cliente"></div>
+      <div class="form-group"><label>Mese</label><select id="e-mese"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Importo (€)</label><input id="e-importo" type="number" placeholder="0"></div>
+      <div class="form-group"><label>Stato</label>
+        <select id="e-stato">
+          <option>PAGATO</option>
+          <option>NON PAGATO</option>
+          <option>FATTURA IN CORSO</option>
+          <option>BANDO</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row cols-1">
+      <div class="form-group"><label>Note</label><input id="e-note" placeholder="Note opzionali"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-entrata')">Annulla</button>
+      <button class="btn btn-primary" onclick="salvaEntrata()">Salva entrata</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Uscita -->
+<div class="modal-overlay" id="modal-uscita">
+  <div class="modal">
+    <div class="modal-title">Nuova uscita</div>
+    <div class="form-row cols-3">
+      <div class="form-group"><label>Data</label><input id="u-data" type="date"></div>
+      <div class="form-group"><label>Categoria</label>
+        <select id="u-cat">
+          <option>Stipendi</option><option>Affitto</option>
+          <option>Tasse</option><option>Ufficio</option><option>Extra</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Mese</label><select id="u-mese"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Descrizione</label><input id="u-desc" placeholder="Descrizione"></div>
+      <div class="form-group"><label>Importo (€)</label><input id="u-importo" type="number" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Fornitore / Dipendente</label><input id="u-fornitore" placeholder="Fornitore"></div>
+      <div class="form-group"><label>Metodo di pagamento</label><input id="u-metodo" placeholder="Bonifico, contanti..."></div>
+    </div>
+    <div class="form-row cols-1">
+      <div class="form-group"><label>Note</label><input id="u-note" placeholder="Note opzionali"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-uscita')">Annulla</button>
+      <button class="btn btn-primary" onclick="salvaUscita()">Salva uscita</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dipendente -->
+<div class="modal-overlay" id="modal-dipendente">
+  <div class="modal">
+    <div class="modal-title">Aggiungi dipendente</div>
+    <div class="form-row cols-1">
+      <div class="form-group"><label>Nome completo</label><input id="d-nome" placeholder="Nome Cognome"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-dipendente')">Annulla</button>
+      <button class="btn btn-primary" onclick="salvaDipendente()">Aggiungi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

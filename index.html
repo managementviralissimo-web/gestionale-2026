@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<!-- ==================== AUTH ==================== -->
+<!-- AUTH -->
 <div id="auth-screen" style="display:none">
   <div class="auth-box">
     <div class="auth-logo">Gestionale 2026</div>
@@ -21,27 +21,17 @@
   </div>
 </div>
 
-<!-- ==================== APP ==================== -->
+<!-- APP -->
 <div id="app-screen" style="display:none">
-
-  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-logo">
-      Gestionale <span>2026</span>
-    </div>
+    <div class="topbar-logo">Gestionale <span>2026</span></div>
     <nav class="nav-tabs">
-      <button class="nav-tab active" data-tab="dashboard" onclick="showTab('dashboard')">
-        ▦ Dashboard
-      </button>
-      <button class="nav-tab" data-tab="entrate" onclick="showTab('entrate')">
-        ↓ Entrate
-      </button>
-      <button class="nav-tab" data-tab="uscite" onclick="showTab('uscite')">
-        ↑ Uscite
-      </button>
-      <button class="nav-tab" data-tab="stipendi" onclick="showTab('stipendi')">
-        ⊞ Stipendi
-      </button>
+      <button class="nav-tab active" data-tab="dashboard" onclick="showTab('dashboard')">▦ Dashboard</button>
+      <button class="nav-tab" data-tab="entrate" onclick="showTab('entrate')">↓ Entrate</button>
+      <button class="nav-tab" data-tab="uscite" onclick="showTab('uscite')">↑ Uscite</button>
+      <button class="nav-tab" data-tab="stipendi" onclick="showTab('stipendi')">⊞ Stipendi</button>
+      <button class="nav-tab" data-tab="clienti" onclick="showTab('clienti')">◉ Clienti</button>
+      <button class="nav-tab" data-tab="scadenze" onclick="showTab('scadenze')">⏰ Scadenzario</button>
     </nav>
     <div class="topbar-right">
       <span id="user-email"></span>
@@ -51,32 +41,40 @@
 
   <div class="main">
 
-    <!-- ===== DASHBOARD ===== -->
+    <!-- DASHBOARD -->
     <div class="section active" id="sec-dashboard">
       <div class="kpi-grid">
-        <div class="kpi">
-          <div class="kpi-label">Entrate incassate</div>
-          <div class="kpi-value pos" id="kpi-entrate">—</div>
+        <div class="kpi"><div class="kpi-label">Entrate incassate</div><div class="kpi-value pos" id="kpi-entrate">—</div></div>
+        <div class="kpi"><div class="kpi-label">Uscite totali</div><div class="kpi-value neg" id="kpi-uscite">—</div></div>
+        <div class="kpi"><div class="kpi-label">Costo stipendi</div><div class="kpi-value neg" id="kpi-stipendi">—</div></div>
+        <div class="kpi"><div class="kpi-label">Saldo annuale</div><div class="kpi-value" id="kpi-saldo">—</div></div>
+      </div>
+
+      <!-- ALERT SCADENZE -->
+      <div id="alert-scadenze" style="display:none" class="alert-box">
+        ⚠️ <strong>Scadenze entro 7 giorni:</strong> <span id="alert-scadenze-txt"></span>
+      </div>
+
+      <!-- GRAFICI ROW 1 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+        <div class="card">
+          <div class="card-header">Entrate vs Uscite mensili</div>
+          <div class="card-body">
+            <canvas id="chart-bar" height="200"></canvas>
+          </div>
         </div>
-        <div class="kpi">
-          <div class="kpi-label">Uscite totali</div>
-          <div class="kpi-value neg" id="kpi-uscite">—</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Costo stipendi</div>
-          <div class="kpi-value neg" id="kpi-stipendi">—</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Saldo annuale</div>
-          <div class="kpi-value" id="kpi-saldo">—</div>
+        <div class="card">
+          <div class="card-header">Crediti da incassare</div>
+          <div class="card-body" style="display:flex;align-items:center;justify-content:center">
+            <canvas id="chart-torta" height="200" style="max-width:200px"></canvas>
+            <div id="torta-legend" style="margin-left:20px;font-size:12px"></div>
+          </div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          Saldo mensile 2026
-          <button class="btn btn-sm" onclick="esportaCSV()">↓ Esporta CSV</button>
-        </div>
+      <!-- GRAFICI ROW 2 -->
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-header">Saldo mensile 2026</div>
         <div class="card-body">
           <div class="months-row" id="dash-months"></div>
         </div>
@@ -84,7 +82,7 @@
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
         <div class="card">
-          <div class="card-header">Entrate per stato</div>
+          <div class="card-header">Entrate per stato <button class="btn btn-sm ml-auto" onclick="esportaCSV()">↓ CSV</button></div>
           <div class="card-body" id="dash-stati"></div>
         </div>
         <div class="card">
@@ -94,75 +92,49 @@
       </div>
     </div>
 
-    <!-- ===== ENTRATE ===== -->
+    <!-- ENTRATE -->
     <div class="section" id="sec-entrate">
       <div class="toolbar">
         <select id="fil-mese-e" onchange="renderEntrate()"></select>
         <select id="fil-stato-e" onchange="renderEntrate()">
           <option value="">Tutti gli stati</option>
-          <option>PAGATO</option>
-          <option>NON PAGATO</option>
-          <option>FATTURA IN CORSO</option>
-          <option>BANDO</option>
+          <option>PAGATO</option><option>NON PAGATO</option>
+          <option>FATTURA IN CORSO</option><option>BANDO</option>
         </select>
         <input type="search" id="fil-cerca-e" placeholder="Cerca cliente..." style="width:200px" oninput="renderEntrate()">
         <button class="btn btn-primary ml-auto" onclick="openModal('modal-entrata')">+ Aggiungi entrata</button>
       </div>
-
       <div class="card" style="padding:0">
         <table>
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>Mese</th>
-              <th class="td-right">Importo</th>
-              <th>Stato</th>
-              <th>Note</th>
-              <th></th>
-            </tr>
-          </thead>
+          <thead><tr><th>Cliente</th><th>Mese</th><th class="td-right">Importo</th><th>Stato</th><th>Note</th><th></th></tr></thead>
           <tbody id="tb-entrate"></tbody>
         </table>
       </div>
       <div class="total-bar" id="tot-entrate"></div>
     </div>
 
-    <!-- ===== USCITE ===== -->
+    <!-- USCITE -->
     <div class="section" id="sec-uscite">
       <div class="toolbar">
         <select id="fil-mese-u" onchange="renderUscite()"></select>
         <select id="fil-cat-u" onchange="renderUscite()">
           <option value="">Tutte le categorie</option>
-          <option>Stipendi</option>
-          <option>Affitto</option>
-          <option>Tasse</option>
-          <option>Ufficio</option>
-          <option>Extra</option>
+          <option>Stipendi</option><option>Affitto</option>
+          <option>Tasse</option><option>Ufficio</option><option>Extra</option>
         </select>
         <input type="search" id="fil-cerca-u" placeholder="Cerca..." style="width:180px" oninput="renderUscite()">
         <button class="btn btn-primary ml-auto" onclick="openModal('modal-uscita')">+ Aggiungi uscita</button>
       </div>
-
       <div class="card" style="padding:0">
         <table>
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Categoria</th>
-              <th>Descrizione</th>
-              <th class="td-right">Importo</th>
-              <th>Fornitore</th>
-              <th>Metodo</th>
-              <th></th>
-            </tr>
-          </thead>
+          <thead><tr><th>Data</th><th>Categoria</th><th>Descrizione</th><th class="td-right">Importo</th><th>Fornitore</th><th>Metodo</th><th></th></tr></thead>
           <tbody id="tb-uscite"></tbody>
         </table>
       </div>
       <div class="total-bar" id="tot-uscite"></div>
     </div>
 
-    <!-- ===== STIPENDI ===== -->
+    <!-- STIPENDI -->
     <div class="section" id="sec-stipendi">
       <div class="toolbar">
         <select id="fil-tipo-s" onchange="renderStipendi()">
@@ -171,20 +143,57 @@
         </select>
         <button class="btn btn-primary ml-auto" onclick="openModal('modal-dipendente')">+ Aggiungi dipendente</button>
       </div>
-
       <div class="card" style="padding:0">
-        <div class="stipendi-wrap">
-          <table id="tb-stipendi"></table>
-        </div>
+        <div class="stipendi-wrap"><table id="tb-stipendi"></table></div>
       </div>
     </div>
 
-  </div><!-- /main -->
-</div><!-- /app-screen -->
+    <!-- CLIENTI -->
+    <div class="section" id="sec-clienti">
+      <div class="toolbar">
+        <input type="search" id="fil-cerca-c" placeholder="Cerca cliente..." style="width:220px" oninput="renderClienti()">
+        <select id="fil-tipo-c" onchange="renderClienti()">
+          <option value="">Tutti i tipi</option>
+          <option>Azienda</option><option>Privato</option><option>Ente</option>
+        </select>
+        <button class="btn btn-primary ml-auto" onclick="openModal('modal-cliente')">+ Aggiungi cliente</button>
+      </div>
+      <div class="card" style="padding:0">
+        <table>
+          <thead><tr><th>Ragione Sociale</th><th>Tipo</th><th>Referente</th><th>Email</th><th>Telefono</th><th>P.IVA</th><th>Pagamento</th><th></th></tr></thead>
+          <tbody id="tb-clienti"></tbody>
+        </table>
+      </div>
+      <div class="total-bar" id="tot-clienti"></div>
+    </div>
 
-<!-- ==================== MODALS ==================== -->
+    <!-- SCADENZARIO -->
+    <div class="section" id="sec-scadenze">
+      <div class="toolbar">
+        <select id="fil-stato-sc" onchange="renderScadenze()">
+          <option value="">Tutti gli stati</option>
+          <option>In attesa</option><option>Pagato</option><option>Scaduto</option>
+        </select>
+        <select id="fil-tipo-sc" onchange="renderScadenze()">
+          <option value="">Entrate e uscite</option>
+          <option value="entrata">Solo entrate</option>
+          <option value="uscita">Solo uscite</option>
+        </select>
+        <button class="btn btn-primary ml-auto" onclick="openModal('modal-scadenza')">+ Aggiungi scadenza</button>
+      </div>
+      <div id="scad-alert-box"></div>
+      <div class="card" style="padding:0">
+        <table>
+          <thead><tr><th>Scadenza</th><th>Tipo</th><th>Descrizione</th><th>Cliente</th><th class="td-right">Importo</th><th>Stato</th><th>Note</th><th></th></tr></thead>
+          <tbody id="tb-scadenze"></tbody>
+        </table>
+      </div>
+    </div>
 
-<!-- Modal Entrata -->
+  </div>
+</div>
+
+<!-- MODALS -->
 <div class="modal-overlay" id="modal-entrata">
   <div class="modal">
     <div class="modal-title">Nuova entrata</div>
@@ -195,17 +204,10 @@
     <div class="form-row">
       <div class="form-group"><label>Importo (€)</label><input id="e-importo" type="number" placeholder="0"></div>
       <div class="form-group"><label>Stato</label>
-        <select id="e-stato">
-          <option>PAGATO</option>
-          <option>NON PAGATO</option>
-          <option>FATTURA IN CORSO</option>
-          <option>BANDO</option>
-        </select>
+        <select id="e-stato"><option>PAGATO</option><option>NON PAGATO</option><option>FATTURA IN CORSO</option><option>BANDO</option></select>
       </div>
     </div>
-    <div class="form-row cols-1">
-      <div class="form-group"><label>Note</label><input id="e-note" placeholder="Note opzionali"></div>
-    </div>
+    <div class="form-row cols-1"><div class="form-group"><label>Note</label><input id="e-note" placeholder="Note opzionali"></div></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-entrata')">Annulla</button>
       <button class="btn btn-primary" onclick="salvaEntrata()">Salva entrata</button>
@@ -213,17 +215,13 @@
   </div>
 </div>
 
-<!-- Modal Uscita -->
 <div class="modal-overlay" id="modal-uscita">
   <div class="modal">
     <div class="modal-title">Nuova uscita</div>
     <div class="form-row cols-3">
       <div class="form-group"><label>Data</label><input id="u-data" type="date"></div>
       <div class="form-group"><label>Categoria</label>
-        <select id="u-cat">
-          <option>Stipendi</option><option>Affitto</option>
-          <option>Tasse</option><option>Ufficio</option><option>Extra</option>
-        </select>
+        <select id="u-cat"><option>Stipendi</option><option>Affitto</option><option>Tasse</option><option>Ufficio</option><option>Extra</option></select>
       </div>
       <div class="form-group"><label>Mese</label><select id="u-mese"></select></div>
     </div>
@@ -232,12 +230,10 @@
       <div class="form-group"><label>Importo (€)</label><input id="u-importo" type="number" placeholder="0"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Fornitore / Dipendente</label><input id="u-fornitore" placeholder="Fornitore"></div>
-      <div class="form-group"><label>Metodo di pagamento</label><input id="u-metodo" placeholder="Bonifico, contanti..."></div>
+      <div class="form-group"><label>Fornitore</label><input id="u-fornitore" placeholder="Fornitore"></div>
+      <div class="form-group"><label>Metodo pagamento</label><input id="u-metodo" placeholder="Bonifico, contanti..."></div>
     </div>
-    <div class="form-row cols-1">
-      <div class="form-group"><label>Note</label><input id="u-note" placeholder="Note opzionali"></div>
-    </div>
+    <div class="form-row cols-1"><div class="form-group"><label>Note</label><input id="u-note" placeholder="Note opzionali"></div></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-uscita')">Annulla</button>
       <button class="btn btn-primary" onclick="salvaUscita()">Salva uscita</button>
@@ -245,13 +241,10 @@
   </div>
 </div>
 
-<!-- Modal Dipendente -->
 <div class="modal-overlay" id="modal-dipendente">
   <div class="modal">
     <div class="modal-title">Aggiungi dipendente</div>
-    <div class="form-row cols-1">
-      <div class="form-group"><label>Nome completo</label><input id="d-nome" placeholder="Nome Cognome"></div>
-    </div>
+    <div class="form-row cols-1"><div class="form-group"><label>Nome completo</label><input id="d-nome" placeholder="Nome Cognome"></div></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-dipendente')">Annulla</button>
       <button class="btn btn-primary" onclick="salvaDipendente()">Aggiungi</button>
@@ -259,11 +252,89 @@
   </div>
 </div>
 
-<!-- Toast -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal" style="width:560px">
+    <div class="modal-title">Nuovo cliente</div>
+    <div class="form-row">
+      <div class="form-group"><label>Ragione Sociale *</label><input id="c-ragione" placeholder="Nome azienda / persona"></div>
+      <div class="form-group"><label>Tipo</label>
+        <select id="c-tipo"><option>Azienda</option><option>Privato</option><option>Ente</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>P.IVA</label><input id="c-piva" placeholder="00000000000"></div>
+      <div class="form-group"><label>Codice Fiscale</label><input id="c-cf" placeholder="CF"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Settore</label><input id="c-settore" placeholder="Es. Tecnologia, Moda..."></div>
+      <div class="form-group"><label>Referente</label><input id="c-referente" placeholder="Nome referente"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Email</label><input id="c-email" type="email" placeholder="email@azienda.it"></div>
+      <div class="form-group"><label>Telefono</label><input id="c-tel" placeholder="+39 000 0000000"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Indirizzo</label><input id="c-indirizzo" placeholder="Via, numero civico"></div>
+      <div class="form-group"><label>Città</label><input id="c-citta" placeholder="Città"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>IBAN</label><input id="c-iban" placeholder="IT00 X000 0000 0000 0000 0000 000"></div>
+      <div class="form-group"><label>Condizioni pagamento</label>
+        <select id="c-pagamento">
+          <option>Immediato</option><option>15 giorni</option><option>30 giorni</option>
+          <option>60 giorni</option><option>90 giorni</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row cols-1"><div class="form-group"><label>Note interne</label><input id="c-note" placeholder="Note interne"></div></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-cliente')">Annulla</button>
+      <button class="btn btn-primary" onclick="salvaCliente()">Salva cliente</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-cliente-dettaglio">
+  <div class="modal" style="width:560px">
+    <div class="modal-title" id="det-titolo"></div>
+    <div id="det-body"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-cliente-dettaglio')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-scadenza">
+  <div class="modal">
+    <div class="modal-title">Nuova scadenza</div>
+    <div class="form-row">
+      <div class="form-group"><label>Tipo</label>
+        <select id="sc-tipo"><option value="entrata">Entrata da incassare</option><option value="uscita">Uscita da pagare</option></select>
+      </div>
+      <div class="form-group"><label>Data scadenza</label><input id="sc-data" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Descrizione *</label><input id="sc-desc" placeholder="Es. Fattura #001"></div>
+      <div class="form-group"><label>Importo (€)</label><input id="sc-importo" type="number" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Cliente collegato</label><select id="sc-cliente"><option value="">— Nessuno —</option></select></div>
+      <div class="form-group"><label>Stato</label>
+        <select id="sc-stato"><option>In attesa</option><option>Pagato</option><option>Scaduto</option></select>
+      </div>
+    </div>
+    <div class="form-row cols-1"><div class="form-group"><label>Note</label><input id="sc-note" placeholder="Note opzionali"></div></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-scadenza')">Annulla</button>
+      <button class="btn btn-primary" onclick="salvaScadenza()">Salva scadenza</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
-<!-- ==================== SCRIPTS ==================== -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/app.js"></script>
 </body>

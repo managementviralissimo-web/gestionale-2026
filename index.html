@@ -30,6 +30,7 @@
       <button class="nav-tab" data-tab="stipendi" onclick="showTab('stipendi')">⊞ Stipendi</button>
       <button class="nav-tab" data-tab="clienti" onclick="showTab('clienti')">◉ Clienti</button>
       <button class="nav-tab" data-tab="scadenze" onclick="showTab('scadenze')">⏰ Scadenzario</button>
+      <button class="nav-tab" data-tab="goals" onclick="showTab('goals')">◎ Goals</button>
     </nav>
     <div class="topbar-right">
       <span id="user-email"></span>
@@ -159,6 +160,22 @@
           <tbody id="tb-scadenze"></tbody>
         </table>
       </div>
+    </div>
+
+    <!-- GOALS -->
+    <div class="section" id="sec-goals">
+      <div class="toolbar">
+        <select id="fil-periodo-g" onchange="renderGoals()">
+          <option value="">Tutti</option>
+          <option value="annuale">Annuali</option>
+          <option value="mensile">Mensili</option>
+        </select>
+        <select id="fil-mese-g" onchange="renderGoals()">
+          <option value="">Tutti i mesi</option>
+        </select>
+        <button class="btn btn-primary ml-auto" onclick="openModal('modal-goal')">+ Nuovo obiettivo</button>
+      </div>
+      <div id="goals-grid" class="goals-grid"></div>
     </div>
   </div>
 </div>
@@ -311,6 +328,67 @@
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-scadenza')">Annulla</button>
       <button class="btn btn-primary" onclick="salvaScadenza()">Salva scadenza</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GOAL -->
+<div class="modal-overlay" id="modal-goal">
+  <div class="modal">
+    <div class="modal-title" id="modal-goal-title">Nuovo obiettivo</div>
+    <div class="form-row cols-1">
+      <div class="form-group"><label>Nome obiettivo *</label><input id="g-nome" placeholder="Es. Fatturato Q1, Clienti attivi..."></div>
+    </div>
+    <div class="form-row cols-1">
+      <div class="form-group"><label>Descrizione</label><input id="g-desc" placeholder="Descrizione opzionale"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Tipo collegamento</label>
+        <select id="g-tipo" onchange="aggiornaUnitaGoal()">
+          <option value="fatturato">Fatturato incassato</option>
+          <option value="entrate_totali">Entrate totali emesse</option>
+          <option value="clienti">Numero clienti</option>
+          <option value="dipendenti">Numero dipendenti</option>
+          <option value="uscite">Uscite totali</option>
+          <option value="custom">Manuale (inserisco io il valore attuale)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Unità</label>
+        <select id="g-unita">
+          <option value="euro">€ Euro</option>
+          <option value="numero">N° Numero</option>
+          <option value="percentuale">% Percentuale</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Valore obiettivo *</label><input id="g-valore" type="number" placeholder="Es. 100000"></div>
+      <div class="form-group"><label>Colore</label>
+        <select id="g-colore">
+          <option value="#1B7B4B">Verde</option>
+          <option value="#1A4F8A">Blu</option>
+          <option value="#9A5F00">Arancio</option>
+          <option value="#C0392B">Rosso</option>
+          <option value="#6B3FA0">Viola</option>
+          <option value="#1A1A18">Nero</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Periodo</label>
+        <select id="g-periodo" onchange="toggleMeseGoal()">
+          <option value="annuale">Annuale</option>
+          <option value="mensile">Mensile</option>
+        </select>
+      </div>
+      <div class="form-group" id="g-mese-wrap" style="display:none"><label>Mese</label><select id="g-mese"></select></div>
+    </div>
+    <div class="form-row cols-1" id="g-custom-wrap" style="display:none">
+      <div class="form-group"><label>Valore attuale (inserisci manualmente)</label><input id="g-attuale" type="number" placeholder="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-goal')">Annulla</button>
+      <button class="btn btn-primary" onclick="salvaGoal()">Salva obiettivo</button>
     </div>
   </div>
 </div>

@@ -96,17 +96,19 @@ async function logout() { await sb.auth.signOut(); }
 
 // ---- DATA ----
 async function loadAll() {
-  const [e,u,d,s,c,sc] = await Promise.all([
+  const [e,u,d,s,c,sc,g] = await Promise.all([
     sb.from('entrate').select('*').order('created_at',{ascending:false}),
     sb.from('uscite').select('*').order('created_at',{ascending:false}),
     sb.from('dipendenti').select('*').order('nome'),
     sb.from('stipendi').select('*, dipendenti(nome)').eq('anno',2026),
     sb.from('clienti').select('*').order('ragione_sociale'),
-    sb.from('scadenze').select('*, clienti(ragione_sociale)').order('data_scadenza')
+    sb.from('scadenze').select('*, clienti(ragione_sociale)').order('data_scadenza'),
+    sb.from('goals').select('*').order('created_at',{ascending:false})
   ]);
   _entrate=e.data||[]; _uscite=u.data||[];
   _dipendenti=d.data||[]; _stipendi=s.data||[];
   _clienti=c.data||[]; _scadenze=sc.data||[];
+  _goals=g.data||[];
 }
 
 // ---- NAV ----
@@ -116,7 +118,7 @@ function showTab(tab) {
   document.getElementById('sec-'+tab).classList.add('active');
   document.querySelector(`.nav-tab[data-tab="${tab}"]`).classList.add('active');
   const r={dashboard:renderDashboard,entrate:renderEntrate,uscite:renderUscite,
-            stipendi:renderStipendi,clienti:renderClienti,scadenze:renderScadenze};
+            stipendi:renderStipendi,clienti:renderClienti,scadenze:renderScadenze,goals:renderGoals};
   if (r[tab]) r[tab]();
 }
 
@@ -590,12 +592,182 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
 });
 
 function populateMesi() {
-  ['e-mese','u-mese','fil-mese-e','fil-mese-u'].forEach(id=>{
+  ['e-mese','u-mese','g-mese','fil-mese-e','fil-mese-u','fil-mese-g'].forEach(id=>{
     const el=document.getElementById(id); if(!el)return;
-    el.innerHTML=(id.startsWith('fil')?'<option value="">Tutti i mesi</option>':'')+
+    const hasAll=id.startsWith('fil');
+    el.innerHTML=(hasAll?'<option value="">Tutti i mesi</option>':'')+
       MESI.map(m=>`<option>${m}</option>`).join('');
   });
 }
 
 populateMesi();
 init();
+
+// ---- GOALS ----
+let _goals = [];
+let _editingGoal = null;
+
+async function loadGoals() {
+  const { data } = await sb.from('goals').select('*').order('created_at', { ascending: false });
+  _goals = data || [];
+}
+
+function calcolaValoreAttuale(goal) {
+  const mese = goal.mese;
+  switch (goal.tipo) {
+    case 'fatturato':
+      return _entrate
+        .filter(e => e.stato === 'PAGATO' && (!mese || e.mese === mese))
+        .reduce((a, b) => a + Number(b.importo), 0);
+    case 'entrate_totali':
+      return _entrate
+        .filter(e => !mese || e.mese === mese)
+        .reduce((a, b) => a + Number(b.importo), 0);
+    case 'clienti':
+      return _clienti.length;
+    case 'dipendenti':
+      return _dipendenti.length;
+    case 'uscite':
+      return _uscite
+        .filter(u => !mese || u.mese === mese)
+        .reduce((a, b) => a + Number(b.importo), 0);
+    case 'custom':
+      return Number(goal.valore_attuale_custom) || 0;
+    default:
+      return 0;
+  }
+}
+
+function fmtGoalVal(val, unita) {
+  if (unita === 'euro') return '€' + Math.round(val).toLocaleString('it-IT');
+  if (unita === 'percentuale') return Math.round(val) + '%';
+  return Math.round(val).toLocaleString('it-IT');
+}
+
+function renderGoals() {
+  const periodo = document.getElementById('fil-periodo-g').value;
+  const mese = document.getElementById('fil-mese-g').value;
+  const fil = _goals.filter(g =>
+    (!periodo || g.periodo === periodo) &&
+    (!mese || g.mese === mese || g.periodo === 'annuale')
+  );
+
+  if (!fil.length) {
+    document.getElementById('goals-grid').innerHTML = `
+      <div class="goals-empty">
+        <div class="emoji">🎯</div>
+        <div>Nessun obiettivo impostato</div>
+        <div style="margin-top:6px;font-size:12px">Clicca "+ Nuovo obiettivo" per iniziare</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('goals-grid').innerHTML = fil.map(g => {
+    const attuale = calcolaValoreAttuale(g);
+    const obiettivo = Number(g.valore_obiettivo);
+    const pct = obiettivo > 0 ? Math.min(100, Math.round((attuale / obiettivo) * 100)) : 0;
+    const fill = Math.min(100, pct);
+    const raggiunto = pct >= 100;
+    const quasi = pct >= 75 && !raggiunto;
+    const statusTxt = raggiunto ? '🎉 Obiettivo raggiunto!' : quasi ? `Manca ${fmtGoalVal(obiettivo - attuale, g.unita)}` : `${fmtGoalVal(obiettivo - attuale, g.unita)} al traguardo`;
+    const statusCls = raggiunto ? 'raggiunto' : quasi ? 'quasi' : '';
+    const periodoLabel = g.periodo === 'mensile' && g.mese ? `${g.mese} 2026` : 'Annuale 2026';
+
+    return `<div class="goal-card" style="--goal-color:${g.colore||'#1A1A18'}">
+      <div class="goal-header">
+        <div class="goal-nome">${g.nome}</div>
+        <div class="goal-actions">
+          <button class="btn btn-sm btn-icon" onclick="apriModificaGoal('${g.id}')">✎</button>
+          <button class="btn btn-sm btn-icon" onclick="eliminaGoal('${g.id}')">✕</button>
+        </div>
+      </div>
+      ${g.descrizione ? `<div class="goal-desc">${g.descrizione}</div>` : ''}
+      <div class="goal-periodo">${periodoLabel}</div>
+      <div class="goal-values">
+        <div class="goal-current">${fmtGoalVal(attuale, g.unita)}</div>
+        <div class="goal-target">/ ${fmtGoalVal(obiettivo, g.unita)}</div>
+        <div class="goal-pct">${pct}%</div>
+      </div>
+      <div class="goal-bar-wrap">
+        <div class="goal-bar-fill" style="width:${fill}%"></div>
+      </div>
+      <div class="goal-status ${statusCls}">${statusTxt}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleMeseGoal() {
+  const periodo = document.getElementById('g-periodo').value;
+  document.getElementById('g-mese-wrap').style.display = periodo === 'mensile' ? 'block' : 'none';
+}
+
+function aggiornaUnitaGoal() {
+  const tipo = document.getElementById('g-tipo').value;
+  const unita = document.getElementById('g-unita');
+  const customWrap = document.getElementById('g-custom-wrap');
+  if (['clienti','dipendenti'].includes(tipo)) unita.value = 'numero';
+  else if (tipo === 'custom') unita.value = 'numero';
+  else unita.value = 'euro';
+  customWrap.style.display = tipo === 'custom' ? 'block' : 'none';
+}
+
+function apriModificaGoal(id) {
+  const g = _goals.find(x => x.id === id);
+  if (!g) return;
+  _editingGoal = id;
+  document.getElementById('g-nome').value = g.nome;
+  document.getElementById('g-desc').value = g.descrizione || '';
+  document.getElementById('g-tipo').value = g.tipo;
+  document.getElementById('g-unita').value = g.unita;
+  document.getElementById('g-valore').value = g.valore_obiettivo;
+  document.getElementById('g-colore').value = g.colore || '#1A1A18';
+  document.getElementById('g-periodo').value = g.periodo;
+  document.getElementById('g-mese').value = g.mese || '';
+  document.getElementById('g-attuale').value = g.valore_attuale_custom || '';
+  toggleMeseGoal();
+  aggiornaUnitaGoal();
+  document.getElementById('modal-goal-title').textContent = 'Modifica obiettivo';
+  openModal('modal-goal');
+}
+
+async function salvaGoal() {
+  const nome = document.getElementById('g-nome').value.trim();
+  const valore = Number(document.getElementById('g-valore').value);
+  if (!nome || !valore) { toast('Inserisci nome e valore obiettivo'); return; }
+  const tipo = document.getElementById('g-tipo').value;
+  const periodo = document.getElementById('g-periodo').value;
+  const data = {
+    nome,
+    descrizione: document.getElementById('g-desc').value,
+    tipo,
+    unita: document.getElementById('g-unita').value,
+    valore_obiettivo: valore,
+    colore: document.getElementById('g-colore').value,
+    periodo,
+    mese: periodo === 'mensile' ? document.getElementById('g-mese').value : null,
+    anno: 2026,
+    valore_attuale_custom: tipo === 'custom' ? Number(document.getElementById('g-attuale').value) || 0 : null
+  };
+  let error;
+  if (_editingGoal) {
+    ({ error } = await sb.from('goals').update(data).eq('id', _editingGoal));
+  } else {
+    ({ error } = await sb.from('goals').insert(data));
+  }
+  if (error) { toast('Errore: ' + error.message); return; }
+  toast(_editingGoal ? 'Obiettivo aggiornato ✓' : 'Obiettivo salvato ✓');
+  _editingGoal = null;
+  document.getElementById('modal-goal-title').textContent = 'Nuovo obiettivo';
+  closeModal('modal-goal');
+  await loadGoals();
+  renderGoals();
+  ['g-nome','g-desc','g-valore','g-attuale'].forEach(id => document.getElementById(id).value = '');
+}
+
+async function eliminaGoal(id) {
+  if (!confirm('Eliminare questo obiettivo?')) return;
+  await sb.from('goals').delete().eq('id', id);
+  await loadGoals();
+  renderGoals();
+  toast('Obiettivo eliminato');
+}

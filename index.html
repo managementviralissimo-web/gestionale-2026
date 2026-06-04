@@ -8,7 +8,6 @@
 </head>
 <body>
 
-<!-- AUTH -->
 <div id="auth-screen" style="display:none">
   <div class="auth-box">
     <div class="auth-logo">Gestionale 2026</div>
@@ -21,7 +20,6 @@
   </div>
 </div>
 
-<!-- APP -->
 <div id="app-screen" style="display:none">
   <div class="topbar">
     <div class="topbar-logo">Gestionale <span>2026</span></div>
@@ -49,19 +47,11 @@
         <div class="kpi"><div class="kpi-label">Costo stipendi</div><div class="kpi-value neg" id="kpi-stipendi">—</div></div>
         <div class="kpi"><div class="kpi-label">Saldo annuale</div><div class="kpi-value" id="kpi-saldo">—</div></div>
       </div>
-
-      <!-- ALERT SCADENZE -->
-      <div id="alert-scadenze" style="display:none" class="alert-box">
-        ⚠️ <strong>Scadenze entro 7 giorni:</strong> <span id="alert-scadenze-txt"></span>
-      </div>
-
-      <!-- GRAFICI ROW 1 -->
+      <div id="alert-scadenze" style="display:none" class="alert-box">⚠️ <strong>Scadenze entro 7 giorni:</strong> <span id="alert-scadenze-txt"></span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
         <div class="card">
           <div class="card-header">Entrate vs Uscite mensili</div>
-          <div class="card-body">
-            <canvas id="chart-bar" height="200"></canvas>
-          </div>
+          <div class="card-body"><canvas id="chart-bar" height="200"></canvas></div>
         </div>
         <div class="card">
           <div class="card-header">Crediti da incassare</div>
@@ -71,24 +61,13 @@
           </div>
         </div>
       </div>
-
-      <!-- GRAFICI ROW 2 -->
       <div class="card" style="margin-bottom:18px">
-        <div class="card-header">Saldo mensile 2026</div>
-        <div class="card-body">
-          <div class="months-row" id="dash-months"></div>
-        </div>
+        <div class="card-header">Saldo mensile 2026 <button class="btn btn-sm ml-auto" onclick="esportaCSV()">↓ CSV</button></div>
+        <div class="card-body"><div class="months-row" id="dash-months"></div></div>
       </div>
-
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
-        <div class="card">
-          <div class="card-header">Entrate per stato <button class="btn btn-sm ml-auto" onclick="esportaCSV()">↓ CSV</button></div>
-          <div class="card-body" id="dash-stati"></div>
-        </div>
-        <div class="card">
-          <div class="card-header">Uscite per categoria</div>
-          <div class="card-body" id="dash-cat"></div>
-        </div>
+        <div class="card"><div class="card-header">Entrate per stato</div><div class="card-body" id="dash-stati"></div></div>
+        <div class="card"><div class="card-header">Uscite per categoria</div><div class="card-body" id="dash-cat"></div></div>
       </div>
     </div>
 
@@ -117,13 +96,10 @@
     <div class="section" id="sec-uscite">
       <div class="toolbar">
         <select id="fil-mese-u" onchange="renderUscite()"></select>
-        <select id="fil-cat-u" onchange="renderUscite()">
-          <option value="">Tutte le categorie</option>
-          <option>Stipendi</option><option>Affitto</option>
-          <option>Tasse</option><option>Ufficio</option><option>Extra</option>
-        </select>
+        <select id="fil-cat-u" onchange="renderUscite()"></select>
         <input type="search" id="fil-cerca-u" placeholder="Cerca..." style="width:180px" oninput="renderUscite()">
-        <button class="btn btn-primary ml-auto" onclick="openModal('modal-uscita')">+ Aggiungi uscita</button>
+        <button class="btn ml-auto" onclick="apriGestioneCategorie()">⚙ Categorie</button>
+        <button class="btn btn-primary" onclick="openModal('modal-uscita')">+ Aggiungi uscita</button>
       </div>
       <div class="card" style="padding:0">
         <table>
@@ -138,8 +114,7 @@
     <div class="section" id="sec-stipendi">
       <div class="toolbar">
         <select id="fil-tipo-s" onchange="renderStipendi()">
-          <option value="stipendio">Stipendi</option>
-          <option value="bonus">Bonus</option>
+          <option value="stipendio">Stipendi</option><option value="bonus">Bonus</option>
         </select>
         <button class="btn btn-primary ml-auto" onclick="openModal('modal-dipendente')">+ Aggiungi dipendente</button>
       </div>
@@ -153,8 +128,7 @@
       <div class="toolbar">
         <input type="search" id="fil-cerca-c" placeholder="Cerca cliente..." style="width:220px" oninput="renderClienti()">
         <select id="fil-tipo-c" onchange="renderClienti()">
-          <option value="">Tutti i tipi</option>
-          <option>Azienda</option><option>Privato</option><option>Ente</option>
+          <option value="">Tutti i tipi</option><option>Azienda</option><option>Privato</option><option>Ente</option>
         </select>
         <button class="btn btn-primary ml-auto" onclick="openModal('modal-cliente')">+ Aggiungi cliente</button>
       </div>
@@ -171,13 +145,10 @@
     <div class="section" id="sec-scadenze">
       <div class="toolbar">
         <select id="fil-stato-sc" onchange="renderScadenze()">
-          <option value="">Tutti gli stati</option>
-          <option>In attesa</option><option>Pagato</option><option>Scaduto</option>
+          <option value="">Tutti gli stati</option><option>In attesa</option><option>Pagato</option><option>Scaduto</option>
         </select>
         <select id="fil-tipo-sc" onchange="renderScadenze()">
-          <option value="">Entrate e uscite</option>
-          <option value="entrata">Solo entrate</option>
-          <option value="uscita">Solo uscite</option>
+          <option value="">Entrate e uscite</option><option value="entrata">Solo entrate</option><option value="uscita">Solo uscite</option>
         </select>
         <button class="btn btn-primary ml-auto" onclick="openModal('modal-scadenza')">+ Aggiungi scadenza</button>
       </div>
@@ -189,14 +160,13 @@
         </table>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- MODALS -->
+<!-- MODAL ENTRATA -->
 <div class="modal-overlay" id="modal-entrata">
   <div class="modal">
-    <div class="modal-title">Nuova entrata</div>
+    <div class="modal-title" id="modal-entrata-title">Nuova entrata</div>
     <div class="form-row">
       <div class="form-group"><label>Cliente</label><input id="e-cliente" placeholder="Nome cliente"></div>
       <div class="form-group"><label>Mese</label><select id="e-mese"></select></div>
@@ -210,19 +180,18 @@
     <div class="form-row cols-1"><div class="form-group"><label>Note</label><input id="e-note" placeholder="Note opzionali"></div></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-entrata')">Annulla</button>
-      <button class="btn btn-primary" onclick="salvaEntrata()">Salva entrata</button>
+      <button class="btn btn-primary" onclick="salvaEntrata()">Salva</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL USCITA -->
 <div class="modal-overlay" id="modal-uscita">
   <div class="modal">
-    <div class="modal-title">Nuova uscita</div>
+    <div class="modal-title" id="modal-uscita-title">Nuova uscita</div>
     <div class="form-row cols-3">
       <div class="form-group"><label>Data</label><input id="u-data" type="date"></div>
-      <div class="form-group"><label>Categoria</label>
-        <select id="u-cat"><option>Stipendi</option><option>Affitto</option><option>Tasse</option><option>Ufficio</option><option>Extra</option></select>
-      </div>
+      <div class="form-group"><label>Categoria</label><select id="u-cat"></select></div>
       <div class="form-group"><label>Mese</label><select id="u-mese"></select></div>
     </div>
     <div class="form-row">
@@ -231,16 +200,37 @@
     </div>
     <div class="form-row">
       <div class="form-group"><label>Fornitore</label><input id="u-fornitore" placeholder="Fornitore"></div>
-      <div class="form-group"><label>Metodo pagamento</label><input id="u-metodo" placeholder="Bonifico, contanti..."></div>
+      <div class="form-group"><label>Metodo pagamento</label>
+        <select id="u-metodo">
+          <option>Bonifico</option><option>Contanti</option><option>Carta di credito</option>
+          <option>Carta di debito</option><option>PayPal</option><option>Assegno</option><option>Altro</option>
+        </select>
+      </div>
     </div>
     <div class="form-row cols-1"><div class="form-group"><label>Note</label><input id="u-note" placeholder="Note opzionali"></div></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-uscita')">Annulla</button>
-      <button class="btn btn-primary" onclick="salvaUscita()">Salva uscita</button>
+      <button class="btn btn-primary" onclick="salvaUscita()">Salva</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL CATEGORIE -->
+<div class="modal-overlay" id="modal-categorie">
+  <div class="modal">
+    <div class="modal-title">Gestione categorie uscite</div>
+    <div id="lista-categorie" style="margin-bottom:16px;max-height:250px;overflow-y:auto"></div>
+    <div style="display:flex;gap:8px">
+      <input id="nuova-categoria" placeholder="Nome nuova categoria" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px">
+      <button class="btn btn-primary" onclick="aggiungiCategoria()">Aggiungi</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modal-categorie');renderUscite()">Fatto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DIPENDENTE -->
 <div class="modal-overlay" id="modal-dipendente">
   <div class="modal">
     <div class="modal-title">Aggiungi dipendente</div>
@@ -252,14 +242,13 @@
   </div>
 </div>
 
+<!-- MODAL CLIENTE -->
 <div class="modal-overlay" id="modal-cliente">
   <div class="modal" style="width:560px">
     <div class="modal-title">Nuovo cliente</div>
     <div class="form-row">
       <div class="form-group"><label>Ragione Sociale *</label><input id="c-ragione" placeholder="Nome azienda / persona"></div>
-      <div class="form-group"><label>Tipo</label>
-        <select id="c-tipo"><option>Azienda</option><option>Privato</option><option>Ente</option></select>
-      </div>
+      <div class="form-group"><label>Tipo</label><select id="c-tipo"><option>Azienda</option><option>Privato</option><option>Ente</option></select></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>P.IVA</label><input id="c-piva" placeholder="00000000000"></div>
@@ -278,12 +267,9 @@
       <div class="form-group"><label>Città</label><input id="c-citta" placeholder="Città"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>IBAN</label><input id="c-iban" placeholder="IT00 X000 0000 0000 0000 0000 000"></div>
+      <div class="form-group"><label>IBAN</label><input id="c-iban" placeholder="IT00 X000..."></div>
       <div class="form-group"><label>Condizioni pagamento</label>
-        <select id="c-pagamento">
-          <option>Immediato</option><option>15 giorni</option><option>30 giorni</option>
-          <option>60 giorni</option><option>90 giorni</option>
-        </select>
+        <select id="c-pagamento"><option>Immediato</option><option>15 giorni</option><option>30 giorni</option><option>60 giorni</option><option>90 giorni</option></select>
       </div>
     </div>
     <div class="form-row cols-1"><div class="form-group"><label>Note interne</label><input id="c-note" placeholder="Note interne"></div></div>
@@ -294,16 +280,16 @@
   </div>
 </div>
 
+<!-- MODAL CLIENTE DETTAGLIO -->
 <div class="modal-overlay" id="modal-cliente-dettaglio">
   <div class="modal" style="width:560px">
     <div class="modal-title" id="det-titolo"></div>
     <div id="det-body"></div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-cliente-dettaglio')">Chiudi</button>
-    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-cliente-dettaglio')">Chiudi</button></div>
   </div>
 </div>
 
+<!-- MODAL SCADENZA -->
 <div class="modal-overlay" id="modal-scadenza">
   <div class="modal">
     <div class="modal-title">Nuova scadenza</div>
@@ -318,10 +304,8 @@
       <div class="form-group"><label>Importo (€)</label><input id="sc-importo" type="number" placeholder="0"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Cliente collegato</label><select id="sc-cliente"><option value="">— Nessuno —</option></select></div>
-      <div class="form-group"><label>Stato</label>
-        <select id="sc-stato"><option>In attesa</option><option>Pagato</option><option>Scaduto</option></select>
-      </div>
+      <div class="form-group"><label>Cliente collegato</label><select id="sc-cliente"></select></div>
+      <div class="form-group"><label>Stato</label><select id="sc-stato"><option>In attesa</option><option>Pagato</option><option>Scaduto</option></select></div>
     </div>
     <div class="form-row cols-1"><div class="form-group"><label>Note</label><input id="sc-note" placeholder="Note opzionali"></div></div>
     <div class="modal-footer">

@@ -32,6 +32,14 @@
       <button class="nav-tab" data-tab="scadenze" onclick="showTab('scadenze')">⏰ Scadenzario</button>
       <button class="nav-tab" data-tab="goals" onclick="showTab('goals')">◎ Goals</button>
     </nav>
+    <div class="anno-switcher">
+      <span style="font-size:11px;color:var(--text-muted);margin-right:6px">Anno:</span>
+      <button class="anno-btn active" data-anno="2026" onclick="setAnno(2026)">2026</button>
+      <button class="anno-btn" data-anno="2027" onclick="setAnno(2027)">2027</button>
+      <button class="anno-btn" data-anno="2028" onclick="setAnno(2028)">2028</button>
+      <button class="anno-btn" data-anno="2029" onclick="setAnno(2029)">2029</button>
+      <button class="anno-btn" data-anno="2030" onclick="setAnno(2030)">2030</button>
+    </div>
     <div class="topbar-right">
       <span id="user-email"></span>
       <button class="btn-logout" onclick="logout()">Esci</button>
@@ -302,6 +310,10 @@
     </div>
     <div class="form-row">
       <div class="form-group"><label>Canone mensile fisso (€)</label><input id="c-canone" type="number" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Valore totale contratto (€)</label><input id="c-valore-totale" type="number" placeholder="Es. 18000"></div>
+      <div class="form-group"><label>Durata contratto (mesi)</label><input id="c-durata" type="number" placeholder="Es. 6" value="12"></div>
       <div class="form-group"><label>Condizioni pagamento</label>
         <select id="c-pagamento"><option>Immediato</option><option>15 giorni</option><option>30 giorni</option><option>60 giorni</option><option>90 giorni</option></select>
       </div>

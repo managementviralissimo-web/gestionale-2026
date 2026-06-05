@@ -50,12 +50,8 @@
       </div>
       <div id="alert-scadenze" style="display:none" class="alert-box">⚠️ <strong>Scadenze entro 7 giorni:</strong> <span id="alert-scadenze-txt"></span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
-        <div class="card">
-          <div class="card-header">Entrate vs Uscite mensili</div>
-          <div class="card-body"><canvas id="chart-bar" height="200"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-header">Crediti da incassare</div>
+        <div class="card"><div class="card-header">Entrate vs Uscite mensili</div><div class="card-body"><canvas id="chart-bar" height="200"></canvas></div></div>
+        <div class="card"><div class="card-header">Crediti da incassare</div>
           <div class="card-body" style="display:flex;align-items:center;justify-content:center">
             <canvas id="chart-torta" height="200" style="max-width:200px"></canvas>
             <div id="torta-legend" style="margin-left:20px;font-size:12px"></div>
@@ -111,35 +107,53 @@
       <div class="total-bar" id="tot-uscite"></div>
     </div>
 
-    <!-- STIPENDI -->
+    <!-- STIPENDI / DIPENDENTI -->
     <div class="section" id="sec-stipendi">
-      <div class="toolbar">
-        <select id="fil-tipo-s" onchange="renderStipendi()">
-          <option value="stipendio">Stipendi</option><option value="bonus">Bonus</option>
-        </select>
-        <button class="btn btn-primary ml-auto" onclick="openModal('modal-dipendente')">+ Aggiungi dipendente</button>
+      <div id="stipendi-list-view">
+        <div class="toolbar">
+          <input type="search" id="fil-cerca-d" placeholder="Cerca dipendente..." style="width:220px" oninput="renderDipendentiList()">
+          <button class="btn btn-primary ml-auto" onclick="openModal('modal-dipendente')">+ Aggiungi dipendente</button>
+        </div>
+        <div id="dipendenti-grid" class="dipendenti-grid"></div>
       </div>
-      <div class="card" style="padding:0">
-        <div class="stipendi-wrap"><table id="tb-stipendi"></table></div>
+      <div id="stipendi-profilo-view" style="display:none">
+        <div class="toolbar">
+          <button class="btn" onclick="chiudiProfiloDipendente()">← Torna alla lista</button>
+        </div>
+        <div id="profilo-dipendente-content"></div>
       </div>
     </div>
 
     <!-- CLIENTI -->
     <div class="section" id="sec-clienti">
-      <div class="toolbar">
-        <input type="search" id="fil-cerca-c" placeholder="Cerca cliente..." style="width:220px" oninput="renderClienti()">
-        <select id="fil-tipo-c" onchange="renderClienti()">
-          <option value="">Tutti i tipi</option><option>Azienda</option><option>Privato</option><option>Ente</option>
-        </select>
-        <button class="btn btn-primary ml-auto" onclick="openModal('modal-cliente')">+ Aggiungi cliente</button>
+      <div id="clienti-list-view">
+        <div class="toolbar">
+          <input type="search" id="fil-cerca-c" placeholder="Cerca cliente..." style="width:220px" oninput="renderClienti()">
+          <select id="fil-tipo-c" onchange="renderClienti()">
+            <option value="">Tutti i tipi</option><option>Azienda</option><option>Privato</option><option>Ente</option>
+          </select>
+          <select id="fil-stato-c" onchange="renderClienti()">
+            <option value="">Tutti gli stati</option>
+            <option value="regolare">In regola</option>
+            <option value="irregolare">Irregolare</option>
+            <option value="attenzione">Attenzione</option>
+          </select>
+          <button class="btn btn-primary ml-auto" onclick="openModal('modal-cliente')">+ Aggiungi cliente</button>
+        </div>
+        <div class="card" style="padding:0">
+          <table>
+            <thead><tr><th>Ragione Sociale</th><th>Tipo</th><th>Referente</th><th>Canone/mese</th><th>Stato pagamenti</th><th>Pagamenti 2026</th><th></th></tr></thead>
+            <tbody id="tb-clienti"></tbody>
+          </table>
+        </div>
+        <div class="total-bar" id="tot-clienti"></div>
       </div>
-      <div class="card" style="padding:0">
-        <table>
-          <thead><tr><th>Ragione Sociale</th><th>Tipo</th><th>Referente</th><th>Email</th><th>Telefono</th><th>P.IVA</th><th>Pagamento</th><th></th></tr></thead>
-          <tbody id="tb-clienti"></tbody>
-        </table>
+      <div id="clienti-profilo-view" style="display:none">
+        <div class="toolbar">
+          <button class="btn" onclick="chiudiProfiloCliente()">← Torna alla lista</button>
+        </div>
+        <div id="profilo-cliente-content"></div>
       </div>
-      <div class="total-bar" id="tot-clienti"></div>
     </div>
 
     <!-- SCADENZARIO -->
@@ -166,17 +180,14 @@
     <div class="section" id="sec-goals">
       <div class="toolbar">
         <select id="fil-periodo-g" onchange="renderGoals()">
-          <option value="">Tutti</option>
-          <option value="annuale">Annuali</option>
-          <option value="mensile">Mensili</option>
+          <option value="">Tutti</option><option value="annuale">Annuali</option><option value="mensile">Mensili</option>
         </select>
-        <select id="fil-mese-g" onchange="renderGoals()">
-          <option value="">Tutti i mesi</option>
-        </select>
+        <select id="fil-mese-g" onchange="renderGoals()"><option value="">Tutti i mesi</option></select>
         <button class="btn btn-primary ml-auto" onclick="openModal('modal-goal')">+ Nuovo obiettivo</button>
       </div>
       <div id="goals-grid" class="goals-grid"></div>
     </div>
+
   </div>
 </div>
 
@@ -218,10 +229,7 @@
     <div class="form-row">
       <div class="form-group"><label>Fornitore</label><input id="u-fornitore" placeholder="Fornitore"></div>
       <div class="form-group"><label>Metodo pagamento</label>
-        <select id="u-metodo">
-          <option>Bonifico</option><option>Contanti</option><option>Carta di credito</option>
-          <option>Carta di debito</option><option>PayPal</option><option>Assegno</option><option>Altro</option>
-        </select>
+        <select id="u-metodo"><option>Bonifico</option><option>Contanti</option><option>Carta di credito</option><option>Carta di debito</option><option>PayPal</option><option>Assegno</option><option>Altro</option></select>
       </div>
     </div>
     <div class="form-row cols-1"><div class="form-group"><label>Note</label><input id="u-note" placeholder="Note opzionali"></div></div>
@@ -241,20 +249,33 @@
       <input id="nuova-categoria" placeholder="Nome nuova categoria" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:13px">
       <button class="btn btn-primary" onclick="aggiungiCategoria()">Aggiungi</button>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeModal('modal-categorie');renderUscite()">Fatto</button>
-    </div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeModal('modal-categorie');renderUscite()">Fatto</button></div>
   </div>
 </div>
 
 <!-- MODAL DIPENDENTE -->
 <div class="modal-overlay" id="modal-dipendente">
-  <div class="modal">
-    <div class="modal-title">Aggiungi dipendente</div>
-    <div class="form-row cols-1"><div class="form-group"><label>Nome completo</label><input id="d-nome" placeholder="Nome Cognome"></div></div>
+  <div class="modal" style="width:520px">
+    <div class="modal-title" id="modal-dip-title">Nuovo dipendente</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nome completo *</label><input id="d-nome" placeholder="Nome Cognome"></div>
+      <div class="form-group"><label>Ruolo</label><input id="d-ruolo" placeholder="Es. Social Media Manager"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Tipo contratto</label>
+        <select id="d-contratto"><option>Dipendente</option><option>Collaboratore</option><option>Freelance</option><option>Stage</option><option>Partita IVA</option></select>
+      </div>
+      <div class="form-group"><label>Data assunzione</label><input id="d-assunzione" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Email</label><input id="d-email" type="email" placeholder="email@azienda.it"></div>
+      <div class="form-group"><label>Telefono</label><input id="d-tel" placeholder="+39 000 0000000"></div>
+    </div>
+    <div class="form-row cols-1"><div class="form-group"><label>IBAN</label><input id="d-iban" placeholder="IT00 X000..."></div></div>
+    <div class="form-row cols-1"><div class="form-group"><label>Note</label><input id="d-note" placeholder="Note interne"></div></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-dipendente')">Annulla</button>
-      <button class="btn btn-primary" onclick="salvaDipendente()">Aggiungi</button>
+      <button class="btn btn-primary" onclick="salvaDipendente()">Salva</button>
     </div>
   </div>
 </div>
@@ -272,37 +293,32 @@
       <div class="form-group"><label>Codice Fiscale</label><input id="c-cf" placeholder="CF"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Settore</label><input id="c-settore" placeholder="Es. Tecnologia, Moda..."></div>
       <div class="form-group"><label>Referente</label><input id="c-referente" placeholder="Nome referente"></div>
-    </div>
-    <div class="form-row">
       <div class="form-group"><label>Email</label><input id="c-email" type="email" placeholder="email@azienda.it"></div>
+    </div>
+    <div class="form-row">
       <div class="form-group"><label>Telefono</label><input id="c-tel" placeholder="+39 000 0000000"></div>
+      <div class="form-group"><label>Settore</label><input id="c-settore" placeholder="Es. Moda, Tech..."></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Indirizzo</label><input id="c-indirizzo" placeholder="Via, numero civico"></div>
-      <div class="form-group"><label>Città</label><input id="c-citta" placeholder="Città"></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>IBAN</label><input id="c-iban" placeholder="IT00 X000..."></div>
+      <div class="form-group"><label>Canone mensile fisso (€)</label><input id="c-canone" type="number" placeholder="0"></div>
       <div class="form-group"><label>Condizioni pagamento</label>
         <select id="c-pagamento"><option>Immediato</option><option>15 giorni</option><option>30 giorni</option><option>60 giorni</option><option>90 giorni</option></select>
       </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Inizio contratto</label><input id="c-inizio" type="date"></div>
+      <div class="form-group"><label>Fine contratto</label><input id="c-fine" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>IBAN</label><input id="c-iban" placeholder="IT00 X000..."></div>
+      <div class="form-group"><label>Indirizzo</label><input id="c-indirizzo" placeholder="Via, città"></div>
     </div>
     <div class="form-row cols-1"><div class="form-group"><label>Note interne</label><input id="c-note" placeholder="Note interne"></div></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-cliente')">Annulla</button>
       <button class="btn btn-primary" onclick="salvaCliente()">Salva cliente</button>
     </div>
-  </div>
-</div>
-
-<!-- MODAL CLIENTE DETTAGLIO -->
-<div class="modal-overlay" id="modal-cliente-dettaglio">
-  <div class="modal" style="width:560px">
-    <div class="modal-title" id="det-titolo"></div>
-    <div id="det-body"></div>
-    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-cliente-dettaglio')">Chiudi</button></div>
   </div>
 </div>
 
@@ -321,7 +337,7 @@
       <div class="form-group"><label>Importo (€)</label><input id="sc-importo" type="number" placeholder="0"></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Cliente collegato</label><select id="sc-cliente"></select></div>
+      <div class="form-group"><label>Cliente</label><select id="sc-cliente"></select></div>
       <div class="form-group"><label>Stato</label><select id="sc-stato"><option>In attesa</option><option>Pagato</option><option>Scaduto</option></select></div>
     </div>
     <div class="form-row cols-1"><div class="form-group"><label>Note</label><input id="sc-note" placeholder="Note opzionali"></div></div>
@@ -336,12 +352,8 @@
 <div class="modal-overlay" id="modal-goal">
   <div class="modal">
     <div class="modal-title" id="modal-goal-title">Nuovo obiettivo</div>
-    <div class="form-row cols-1">
-      <div class="form-group"><label>Nome obiettivo *</label><input id="g-nome" placeholder="Es. Fatturato Q1, Clienti attivi..."></div>
-    </div>
-    <div class="form-row cols-1">
-      <div class="form-group"><label>Descrizione</label><input id="g-desc" placeholder="Descrizione opzionale"></div>
-    </div>
+    <div class="form-row cols-1"><div class="form-group"><label>Nome obiettivo *</label><input id="g-nome" placeholder="Es. Fatturato Q1, Clienti attivi..."></div></div>
+    <div class="form-row cols-1"><div class="form-group"><label>Descrizione</label><input id="g-desc" placeholder="Descrizione opzionale"></div></div>
     <div class="form-row">
       <div class="form-group"><label>Tipo collegamento</label>
         <select id="g-tipo" onchange="aggiornaUnitaGoal()">
@@ -350,41 +362,27 @@
           <option value="clienti">Numero clienti</option>
           <option value="dipendenti">Numero dipendenti</option>
           <option value="uscite">Uscite totali</option>
-          <option value="custom">Manuale (inserisco io il valore attuale)</option>
+          <option value="custom">Manuale</option>
         </select>
       </div>
       <div class="form-group"><label>Unità</label>
-        <select id="g-unita">
-          <option value="euro">€ Euro</option>
-          <option value="numero">N° Numero</option>
-          <option value="percentuale">% Percentuale</option>
-        </select>
+        <select id="g-unita"><option value="euro">€ Euro</option><option value="numero">N° Numero</option><option value="percentuale">% Percentuale</option></select>
       </div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Valore obiettivo *</label><input id="g-valore" type="number" placeholder="Es. 100000"></div>
       <div class="form-group"><label>Colore</label>
-        <select id="g-colore">
-          <option value="#1B7B4B">Verde</option>
-          <option value="#1A4F8A">Blu</option>
-          <option value="#9A5F00">Arancio</option>
-          <option value="#C0392B">Rosso</option>
-          <option value="#6B3FA0">Viola</option>
-          <option value="#1A1A18">Nero</option>
-        </select>
+        <select id="g-colore"><option value="#1B7B4B">Verde</option><option value="#1A4F8A">Blu</option><option value="#9A5F00">Arancio</option><option value="#C0392B">Rosso</option><option value="#6B3FA0">Viola</option><option value="#1A1A18">Nero</option></select>
       </div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Periodo</label>
-        <select id="g-periodo" onchange="toggleMeseGoal()">
-          <option value="annuale">Annuale</option>
-          <option value="mensile">Mensile</option>
-        </select>
+        <select id="g-periodo" onchange="toggleMeseGoal()"><option value="annuale">Annuale</option><option value="mensile">Mensile</option></select>
       </div>
       <div class="form-group" id="g-mese-wrap" style="display:none"><label>Mese</label><select id="g-mese"></select></div>
     </div>
     <div class="form-row cols-1" id="g-custom-wrap" style="display:none">
-      <div class="form-group"><label>Valore attuale (inserisci manualmente)</label><input id="g-attuale" type="number" placeholder="0"></div>
+      <div class="form-group"><label>Valore attuale (manuale)</label><input id="g-attuale" type="number" placeholder="0"></div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-goal')">Annulla</button>

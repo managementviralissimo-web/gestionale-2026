@@ -1,13 +1,30 @@
-// GESTIONALE 2026 - App Logic v4
+// GESTIONALE - App Logic v5
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
                'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 const MESI_S = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+const ANNI = [2026, 2027, 2028, 2029, 2030];
 
 let CATEGORIE_USCITE = JSON.parse(localStorage.getItem('cat_uscite')||'["Stipendi","Affitto","Tasse","Servizi Digitali","Ufficio","Extra"]');
 function saveCategorie() { localStorage.setItem('cat_uscite', JSON.stringify(CATEGORIE_USCITE)); }
+
+let annoCorrente = parseInt(localStorage.getItem('anno_corrente')||'2026');
+let _tabCorrente = 'dashboard';
+
+function setAnno(a){
+  annoCorrente=a;
+  localStorage.setItem('anno_corrente',String(a));
+  aggiornaAnnoUI();
+  loadAll().then(()=>showTab(_tabCorrente));
+}
+function aggiornaAnnoUI(){
+  document.querySelectorAll('.anno-btn').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.dataset.anno)===annoCorrente);
+  });
+  document.querySelectorAll('.anno-label').forEach(el=>el.textContent=annoCorrente);
+}
 
 let currentUser = null;
 let _entrate=[], _uscite=[], _dipendenti=[], _stipendi=[];
@@ -62,15 +79,15 @@ async function logout(){await sb.auth.signOut();}
 // ---- DATA ----
 async function loadAll(){
   const [e,u,d,s,c,sc,g,ct,pg]=await Promise.all([
-    sb.from('entrate').select('*').order('created_at',{ascending:false}),
-    sb.from('uscite').select('*').order('created_at',{ascending:false}),
+    sb.from('entrate').select('*').eq('anno',annoCorrente).order('created_at',{ascending:false}),
+    sb.from('uscite').select('*').eq('anno',annoCorrente).order('created_at',{ascending:false}),
     sb.from('dipendenti').select('*').order('nome'),
-    sb.from('stipendi').select('*, dipendenti(nome)').eq('anno',2026),
+    sb.from('stipendi').select('*, dipendenti(nome)').eq('anno',annoCorrente),
     sb.from('clienti').select('*').order('ragione_sociale'),
     sb.from('scadenze').select('*, clienti(ragione_sociale)').order('data_scadenza'),
     sb.from('goals').select('*').order('created_at',{ascending:false}),
     sb.from('contratti_clienti').select('*'),
-    sb.from('pagamenti_clienti').select('*').eq('anno',2026)
+    sb.from('pagamenti_clienti').select('*').eq('anno',annoCorrente)
   ]);
   _entrate=e.data||[];_uscite=u.data||[];_dipendenti=d.data||[];_stipendi=s.data||[];
   _clienti=c.data||[];_scadenze=sc.data||[];_goals=g.data||[];
@@ -79,6 +96,7 @@ async function loadAll(){
 
 // ---- NAV ----
 function showTab(tab){
+  _tabCorrente=tab;
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
   document.getElementById('sec-'+tab).classList.add('active');
@@ -271,12 +289,12 @@ function apriProfiloDipendente(id){
       <div class="kpi"><div class="kpi-label">Telefono</div><div style="font-size:13px;margin-top:4px">${d.telefono||'—'}</div></div>
       <div class="kpi"><div class="kpi-label">Data assunzione</div><div style="font-size:13px;margin-top:4px">${d.data_assunzione?new Date(d.data_assunzione).toLocaleDateString('it-IT'):'—'}</div></div>
       <div class="kpi"><div class="kpi-label">IBAN</div><div style="font-size:12px;font-family:monospace;margin-top:4px">${d.iban||'—'}</div></div>
-      <div class="kpi"><div class="kpi-label">Totale stipendi 2026</div><div class="kpi-value pos" style="font-size:18px">${fmt(totStip)}</div></div>
-      <div class="kpi"><div class="kpi-label">Totale bonus 2026</div><div class="kpi-value" style="font-size:18px;color:var(--amber)">${fmt(totBonus)}</div></div>
+      <div class="kpi"><div class="kpi-label">Totale stipendi <span class='anno-label'></span></div><div class="kpi-value pos" style="font-size:18px">${fmt(totStip)}</div></div>
+      <div class="kpi"><div class="kpi-label">Totale bonus <span class='anno-label'></span></div><div class="kpi-value" style="font-size:18px;color:var(--amber)">${fmt(totBonus)}</div></div>
     </div>
 
     <div class="card">
-      <div class="card-header">Stipendi mensili 2026</div>
+      <div class="card-header">Stipendi mensili <span class='anno-label'></span></div>
       <div class="card-body">
         <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:6px">
           ${stipMesi.map(({mese,val,id,dipId},i)=>`
@@ -291,7 +309,7 @@ function apriProfiloDipendente(id){
     </div>
 
     <div class="card">
-      <div class="card-header">Bonus mensili 2026</div>
+      <div class="card-header">Bonus mensili <span class='anno-label'></span></div>
       <div class="card-body">
         <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:6px">
           ${bonusMesi.map(({mese,val,id,dipId},i)=>`
@@ -348,7 +366,7 @@ async function aggiornaStipendio(dipId,dipNome,tipo,mese,val){
   const importo=Number(val)||0;
   const rec=_stipendi.find(s=>s.dipendenti?.nome===dipNome&&s.tipo===tipo&&s.mese===mese);
   if(rec)await sb.from('stipendi').update({importo}).eq('id',rec.id);
-  else await sb.from('stipendi').insert({dipendente_id:dipId,tipo,mese,anno:2026,importo});
+  else await sb.from('stipendi').insert({dipendente_id:dipId,tipo,mese,anno:annoCorrente,importo});
   await loadAll();
 }
 
@@ -466,13 +484,13 @@ function apriProfiloCliente(id){
 
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">
       <div class="kpi"><div class="kpi-label">Canone mensile</div><div class="kpi-value" style="font-size:18px">${contratto?.canone_mensile?fmt(contratto.canone_mensile):'—'}</div></div>
-      <div class="kpi"><div class="kpi-label">Incassato 2026</div><div class="kpi-value pos" style="font-size:18px">${fmt(totPagato)}</div></div>
+      <div class="kpi"><div class="kpi-label">Incassato <span class='anno-label'></span></div><div class="kpi-value pos" style="font-size:18px">${fmt(totPagato)}</div></div>
       <div class="kpi"><div class="kpi-label">Referente</div><div style="font-size:13px;margin-top:4px">${c.referente||'—'}</div></div>
       <div class="kpi"><div class="kpi-label">Email / Tel</div><div style="font-size:12px;margin-top:4px">${c.email||'—'}<br>${c.telefono||''}</div></div>
     </div>
 
     <div class="card">
-      <div class="card-header">Pagamenti 2026 — clicca su un mese per aggiornare lo stato</div>
+      <div class="card-header">Pagamenti <span class='anno-label'></span> — clicca su un mese per aggiornare lo stato</div>
       <div class="card-body">
         <div class="pagamenti-grid">${pagGrid}</div>
       </div>
@@ -529,11 +547,49 @@ function apriPagamentoModal(clienteId,mese,importo,statoAttuale,pagId,nomeClient
 async function salvaPagamento(stato){
   const{clienteId,mese,pagId}=_pagModalData;
   const importo=Number(document.getElementById('pag-importo')?.value)||0;
-  const data={cliente_id:clienteId,mese,anno:2026,stato,importo};
+  const cliente=_clienti.find(c=>c.id===clienteId);
+  const nomeCliente=cliente?.ragione_sociale||'Cliente';
+
+  // 1. Aggiorna pagamenti_clienti
+  const data={cliente_id:clienteId,mese,anno:annoCorrente,stato,importo};
   if(pagId){await sb.from('pagamenti_clienti').update({stato,importo}).eq('id',pagId);}
   else{await sb.from('pagamenti_clienti').upsert(data,{onConflict:'cliente_id,mese,anno'});}
+
+  // 2. Sincronizza con entrate
+  // Cerca se esiste già un'entrata collegata a questo cliente+mese (con nota speciale)
+  const tagEntrata=`[pag:${clienteId}:${mese}]`;
+  const entrataEsistente=_entrate.find(e=>e.note&&e.note.includes(tagEntrata));
+
+  if(stato==='pagato'&&importo>0){
+    // Stato pagato → crea o aggiorna entrata come PAGATO
+    const entrataDati={cliente:nomeCliente,mese,importo,stato:'PAGATO',anno:annoCorrente,note:tagEntrata};
+    if(entrataEsistente){
+      await sb.from('entrate').update(entrataDati).eq('id',entrataEsistente.id);
+    } else {
+      await sb.from('entrate').insert(entrataDati);
+    }
+  } else if(stato==='nonpagato'&&importo>0){
+    // Non pagato → entrata NON PAGATO
+    const entrataDati={cliente:nomeCliente,mese,importo,stato:'NON PAGATO',anno:annoCorrente,note:tagEntrata};
+    if(entrataEsistente){
+      await sb.from('entrate').update(entrataDati).eq('id',entrataEsistente.id);
+    } else {
+      await sb.from('entrate').insert(entrataDati);
+    }
+  } else if(stato==='ritardo'&&importo>0){
+    // In ritardo → FATTURA IN CORSO
+    const entrataDati={cliente:nomeCliente,mese,importo,stato:'FATTURA IN CORSO',anno:annoCorrente,note:tagEntrata};
+    if(entrataEsistente){
+      await sb.from('entrate').update(entrataDati).eq('id',entrataEsistente.id);
+    } else {
+      await sb.from('entrate').insert(entrataDati);
+    }
+  } else if(stato==='attesa'&&entrataEsistente){
+    // Torna in attesa → rimuovi entrata collegata
+    await sb.from('entrate').delete().eq('id',entrataEsistente.id);
+  }
+
   await loadAll();
-  // Refresh profilo
   apriProfiloCliente(clienteId);
   toast('Pagamento aggiornato ✓');
 }
@@ -553,10 +609,12 @@ async function salvaCliente(){
   const canone=Number(document.getElementById('c-canone').value)||0;
   const inizio=document.getElementById('c-inizio').value;const fine=document.getElementById('c-fine').value;
   if(canone||inizio||fine){
-    await sb.from('contratti_clienti').insert({cliente_id:newCliente.id,canone_mensile:canone,data_inizio:inizio||null,data_fine:fine||null});
+    const valoreTot=Number(document.getElementById('c-valore-totale').value)||0;
+    const durataMesi=Number(document.getElementById('c-durata').value)||12;
+    await sb.from('contratti_clienti').insert({cliente_id:newCliente.id,canone_mensile:canone,valore_totale:valoreTot,durata_mesi:durataMesi,data_inizio:inizio||null,data_fine:fine||null});
   }
   toast('Cliente salvato ✓');closeModal('modal-cliente');await loadAll();renderClienti();
-  ['c-ragione','c-piva','c-referente','c-email','c-tel','c-settore','c-iban','c-indirizzo','c-note','c-canone'].forEach(id=>document.getElementById(id).value='');
+  ['c-ragione','c-piva','c-referente','c-email','c-tel','c-settore','c-iban','c-indirizzo','c-note','c-canone','c-valore-totale'].forEach(id=>document.getElementById(id).value='');
 }
 
 async function eliminaCliente(id){
@@ -644,7 +702,7 @@ async function salvaGoal(){
   const nome=document.getElementById('g-nome').value.trim();const valore=Number(document.getElementById('g-valore').value);
   if(!nome||!valore){toast('Inserisci nome e valore obiettivo');return;}
   const tipo=document.getElementById('g-tipo').value;const periodo=document.getElementById('g-periodo').value;
-  const data={nome,descrizione:document.getElementById('g-desc').value,tipo,unita:document.getElementById('g-unita').value,valore_obiettivo:valore,colore:document.getElementById('g-colore').value,periodo,mese:periodo==='mensile'?document.getElementById('g-mese').value:null,anno:2026,valore_attuale_custom:tipo==='custom'?Number(document.getElementById('g-attuale').value)||0:null};
+  const data={nome,descrizione:document.getElementById('g-desc').value,tipo,unita:document.getElementById('g-unita').value,valore_obiettivo:valore,colore:document.getElementById('g-colore').value,periodo,mese:periodo==='mensile'?document.getElementById('g-mese').value:null,anno:annoCorrente,valore_attuale_custom:tipo==='custom'?Number(document.getElementById('g-attuale').value)||0:null};
   let error;
   if(_editingGoal){({error}=await sb.from('goals').update(data).eq('id',_editingGoal));}
   else{({error}=await sb.from('goals').insert(data));}
@@ -662,7 +720,7 @@ function esportaCSV(){
   csv+='\nUSCITE\nData,Categoria,Mese,Descrizione,Importo,Fornitore,Metodo\n';
   _uscite.forEach(u=>csv+=`"${u.data||''}","${u.categoria}","${u.mese||''}","${u.descrizione||''}",${u.importo},"${u.fornitore||''}","${u.metodo||''}"\n`);
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gestionale_2026.csv';a.click();toast('Export avviato ✓');
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`gestionale_${annoCorrente}.csv`;a.click();toast('Export avviato ✓');
 }
 
 // ---- MODALS ----

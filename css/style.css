@@ -720,3 +720,98 @@ canvas { max-width: 100%; }
 }
 
 .goals-empty .emoji { font-size: 32px; margin-bottom: 12px; }
+
+/* ---- DIPENDENTI GRID ---- */
+.dipendenti-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.dip-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: var(--shadow);
+}
+
+.dip-card:hover { border-color: var(--text); transform: translateY(-1px); }
+
+.dip-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--bg-hover);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.dip-nome { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.dip-ruolo { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+.dip-badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+
+/* ---- PROFILO DIPENDENTE ---- */
+.profilo-header {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+}
+
+.profilo-avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--text);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 600;
+  flex-shrink: 0;
+}
+
+.profilo-nome { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+.profilo-ruolo { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.profilo-actions { margin-left: auto; display: flex; gap: 8px; }
+
+/* ---- PAGAMENTI CLIENTE ---- */
+.pagamenti-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.pag-cell {
+  border-radius: var(--radius-sm);
+  padding: 8px 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1.5px solid transparent;
+}
+
+.pag-cell:hover { opacity: 0.8; transform: scale(1.05); }
+.pag-cell .pag-mese { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; font-weight: 500; }
+.pag-cell .pag-val { font-size: 11px; font-weight: 600; font-family: 'DM Mono', monospace; }
+
+.pag-cell.pagato { background: var(--green-bg); border-color: var(--green); }
+.pag-cell.pagato .pag-val { color: var(--green); }
+.pag-cell.nonpagato { background: var(--red-bg); border-color: var(--red); }
+.pag-cell.nonpagato .pag-val { color: var(--red); }
+.pag-cell.ritardo { background: var(--amber-bg); border-color: var(--amber); }
+.pag-cell.ritardo .pag-val { color: var(--amber); }
+.pag-cell.attesa { background: var(--bg-hover); border-color: var(--border); }
+.pag-cell.attesa .pag-val { color: var(--text-faint); }
+
+.badge-regolare { background: var(--green-bg); color: var(--green); }
+.badge-irregolare { background: var(--red-bg); color: var(--red); }
+.badge-attenzione { background: var(--amber-bg); color: var(--amber); }
+
+/* ---- MODAL PAGAMENTO ---- */
+.pag-modal-mese { font-size: 16px; font-weight: 600; margin-bottom: 16px; }

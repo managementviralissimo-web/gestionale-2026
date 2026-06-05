@@ -815,3 +815,30 @@ canvas { max-width: 100%; }
 
 /* ---- MODAL PAGAMENTO ---- */
 .pag-modal-mese { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+/* ---- ANNO SWITCHER ---- */
+.anno-switcher {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+
+.anno-btn {
+  padding: 4px 10px;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+
+.anno-btn:hover { background: var(--bg-hover); color: var(--text); }
+.anno-btn.active { background: var(--text); color: #fff; }
